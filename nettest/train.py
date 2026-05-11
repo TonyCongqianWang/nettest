@@ -37,10 +37,25 @@ def ensure_trainer(trainer):
 
         try:
             temp_trainer_dir.mkdir(parents=True, exist_ok=True)
+
             execute(
-                f"[attempt {attempt}] clone trainer",
-                ["git", "clone", "--no-checkout", repo],
-                temp_trainer_dir,
+                f"[attempt {attempt}] init trainer repo",
+                ["git", "init"],
+                temp_nnue_pytorch_dir,
+                False,
+            )
+
+            execute(
+                f"[attempt {attempt}] add remote",
+                ["git", "remote", "add", "origin", repo],
+                temp_nnue_pytorch_dir,
+                False,
+            )
+
+            execute(
+                f"[attempt {attempt}] fetch sha {sha}",
+                ["git", "fetch", "--depth", "1", "origin", sha],
+                temp_nnue_pytorch_dir,
                 False,
             )
 
@@ -50,6 +65,7 @@ def ensure_trainer(trainer):
                 temp_nnue_pytorch_dir,
                 False,
             )
+
             execute(
                 f"[attempt {attempt}] build data loader",
                 ["bash", "setup_script.sh"],
@@ -89,9 +105,11 @@ def ckpt_reached_end(ckpt_path, max_epochs):
 
     return reached_end
 
+
 def parse_slurm_timelimit(value: str) -> int:
-    hh, mm, ss = value.split(':')
+    hh, mm, ss = value.split(":")
     return int(hh) * 3600 + int(mm) * 60 + int(ss)
+
 
 def seconds_to_ddhhmmss(total: int) -> str:
     dd = total // 86400
@@ -99,6 +117,7 @@ def seconds_to_ddhhmmss(total: int) -> str:
     mm = (total % 3600) // 60
     ss = total % 60
     return f"{dd:02d}:{hh:02d}:{mm:02d}:{ss:02d}"
+
 
 def run_trainer(environment, current_sha, previous_sha, run, nnue_pytorch_dir):
     """
@@ -151,7 +170,7 @@ def run_trainer(environment, current_sha, previous_sha, run, nnue_pytorch_dir):
     cmd.append(f"--threads={num_threads}")
     cmd.append(f"--gpus={local_devices}")
 
-    # large net needs at least 16 threads, small net >64, number of active threads is seems also roughly half specified
+    # large net needs at least 16 threads, smaller nets might need more
     if "train" in environment and "workers" in environment["train"]:
         workers = environment["train"]["workers"]
     else:
@@ -172,7 +191,9 @@ def run_trainer(environment, current_sha, previous_sha, run, nnue_pytorch_dir):
 
     max_epochs = int(run["max_epochs"])
     cmd.append(f"--max_epochs={max_epochs}")
-    cmd.append(f"--network-save-period={max_epochs}")
+    cmd.append(f"--network-save-period={min(max_epochs, 20)}")
+    cmd.append("--save_top_k=1")
+    cmd.append("--save_last_network=True")
 
     # Where to store logs and eventually checkpoints
     root_dir = Path.cwd() / "scratch" / current_sha / "run"

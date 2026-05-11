@@ -3,10 +3,12 @@ import re
 from pathlib import Path
 from .utils import execute
 from .default_environment import get_default_environment
+from .train import ensure_trainer
 import shutil
 import uuid
 import time
 import os
+import random
 
 
 def ensure_fastchess(fastchess):
@@ -34,10 +36,25 @@ def ensure_fastchess(fastchess):
 
         try:
             temp_build_dir.mkdir(parents=True, exist_ok=True)
+
             execute(
-                f"[attempt {attempt}] clone fastchess",
-                ["git", "clone", "--no-checkout", repo],
-                temp_build_dir,
+                f"[attempt {attempt}] init repo",
+                ["git", "init"],
+                temp_fastchess_dir,
+                False,
+            )
+
+            execute(
+                f"[attempt {attempt}] add remote",
+                ["git", "remote", "add", "origin", repo],
+                temp_fastchess_dir,
+                False,
+            )
+
+            execute(
+                f"[attempt {attempt}] fetch sha {sha}",
+                ["git", "fetch", "--depth", "1", "origin", sha],
+                temp_fastchess_dir,
                 False,
             )
 
@@ -98,21 +115,37 @@ def ensure_stockfish(target, test):
     for attempt in range(1, max_retries + 1):
         unique_suffix = str(uuid.uuid4())
         temp_build_dir = target_dir.parent / f"{target_dir.name}_build_{unique_suffix}"
+        temp_stockfish_dir = temp_build_dir / "Stockfish"
         temp_stockfish_src_dir = temp_build_dir / "Stockfish" / "src"
 
         try:
             temp_build_dir.mkdir(parents=True, exist_ok=True)
+
             execute(
-                f"[attempt {attempt}] clone Stockfish {target}",
-                ["git", "clone", "--no-checkout", repo],
-                temp_build_dir,
+                f"[attempt {attempt}] init Stockfish {target}",
+                ["git", "init"],
+                temp_stockfish_dir,
+                False,
+            )
+
+            execute(
+                f"[attempt {attempt}] add remote",
+                ["git", "remote", "add", "origin", repo],
+                temp_stockfish_dir,
+                False,
+            )
+
+            execute(
+                f"[attempt {attempt}] fetch sha {sha}",
+                ["git", "fetch", "--depth", "1", "origin", sha],
+                temp_stockfish_dir,
                 False,
             )
 
             execute(
                 f"[attempt {attempt}] checkout sha {sha}",
                 ["git", "checkout", "--detach", sha],
-                temp_stockfish_src_dir,
+                temp_stockfish_dir,
                 False,
             )
 
@@ -162,6 +195,36 @@ def run_fastchess(
     assert stockfish_testing.exists()
     assert fastchess.exists()
 
+    match_dir = Path.cwd() / "scratch" / test_config_sha / "match" / testing_sha
+    match_dir.mkdir(parents=True, exist_ok=True)
+
+    # net to be tested
+    final_yaml_file = Path.cwd() / "scratch" / testing_sha / "final.yaml"
+    assert final_yaml_file.exists(), f"{final_yaml_file} does not exist"
+    with open(final_yaml_file) as f:
+        final_config = yaml.safe_load(f)
+    short_nnue = final_config["short_nnue"]
+    std_nnue = final_config["std_nnue"]
+    assert Path(std_nnue).exists(), f"{std_nnue} does not exist"
+
+    # generate bench output
+    execute(
+        f"Run bench for Stockfish reference {stockfish_reference}",
+        [f"{stockfish_reference}"],
+        match_dir,
+        False,
+        filter_re=r"^(?!.*Nodes).*$",
+        stdin_lines=["bench", "quit"],
+    )
+    execute(
+        f"Run bench for Stockfish testing {stockfish_testing} with net {short_nnue}",
+        [f"{stockfish_testing}"],
+        match_dir,
+        False,
+        filter_re=r"^(?!.*Nodes).*$",
+        stdin_lines=[f"setoption name EvalFile value {std_nnue}", "bench", "quit"],
+    )
+
     # download book for testing as needed
     book_dir = Path.cwd() / "data"
     book = book_dir / "UHO_Lichess_4852_v1.epd"
@@ -208,20 +271,6 @@ def run_fastchess(
             "model=normalized",
         ]
 
-    # take care of small vs big net
-    target_net = "EvalFile"
-    if "evalfile" in test["fastchess"]["options"]:
-        if test["fastchess"]["options"]["evalfile"].lower() == "small":
-            target_net = "EvalFileSmall"
-        elif test["fastchess"]["options"]["evalfile"].lower() == "big":
-            target_net = "EvalFile"
-        else:
-            assert False, "EvalFile needs to be either small or big"
-
-    sha = testing_sha
-    match_dir = Path.cwd() / "scratch" / test_config_sha / "match" / sha
-    match_dir.mkdir(parents=True, exist_ok=True)
-
     # fastchess config
     cmd = [f"{fastchess}"]
 
@@ -242,7 +291,15 @@ def run_fastchess(
             f"{affinity}",
         ]
 
-    cmd += ["-rounds", f"{rounds}", "-games", "2", "-repeat", "-srand", "42"]
+    cmd += [
+        "-rounds",
+        f"{rounds}",
+        "-games",
+        "2",
+        "-repeat",
+        "-srand",
+        f"{random.randint(0, 10000)}",
+    ]
     cmd += sprt_options
     cmd += ["-ratinginterval", "100"]
 
@@ -250,22 +307,13 @@ def run_fastchess(
     cmd += ["-report", "penta=true"]
     cmd += ["-pgnout", "file=match.pgn"]
 
-    # add net to be tested
-    final_yaml_file = Path.cwd() / "scratch" / sha / "final.yaml"
-    assert final_yaml_file.exists(), f"{final_yaml_file} does not exist"
-    with open(final_yaml_file) as f:
-        final_config = yaml.safe_load(f)
-    short_nnue = final_config["short_nnue"]
-    std_nnue = final_config["std_nnue"]
-    assert Path(std_nnue).exists(), f"{std_nnue} does not exist"
-
     # configure engines
-    name = f"step_{sha}_{short_nnue}"
+    name = f"step_{testing_sha}_{short_nnue}"
     cmd += [
         "-engine",
         f"name={name}",
         f"cmd={stockfish_testing}",
-        f"option.{target_net}={std_nnue}",
+        f"option.EvalFile={std_nnue}",
     ]
 
     if "options" in test["testing"]:
@@ -295,7 +343,7 @@ def run_fastchess(
 
     # Done setup, run fastchess
     output = execute(
-        f"Run fastchess match for {sha}: {short_nnue}",
+        f"Run fastchess match for {testing_sha}: {short_nnue}",
         cmd,
         match_dir,
         False,
@@ -321,6 +369,69 @@ def run_fastchess(
     return winning_net, nElo
 
 
+def run_cross_check_eval(environment, test, testing_sha, stockfish_testing):
+    """
+    Run cross_check_eval to verify that SF inference matches the trainer inference
+    """
+
+    if "crosscheck" not in test:
+        return
+
+    # use environment to pick GPU, ignore thread affinity for now
+    assert environment is not None, "Environment is required for crosscheck"
+    if "train" in environment and "devices" in environment["train"]:
+        device = [
+            int(x) for x in environment["train"]["devices"].rstrip(",").split(",")
+        ][0]
+    else:
+        device = 0  # default to GPU 0 if not specified
+
+    # needed testing engine, able to load the net.
+    assert stockfish_testing.exists()
+
+    # add net to be tested
+    final_yaml_file = Path.cwd() / "scratch" / testing_sha / "final.yaml"
+    assert final_yaml_file.exists(), f"{final_yaml_file} does not exist"
+    with open(final_yaml_file) as f:
+        final_config = yaml.safe_load(f)
+    std_nnue = final_config["std_nnue"]
+    assert Path(std_nnue).exists(), f"{std_nnue} does not exist"
+    checkpoint = final_config["checkpoint"]
+    assert Path(checkpoint).exists(), f"{checkpoint} does not exist"
+
+    # test positions
+    assert "binpack" in test["crosscheck"], "crosscheck config must include binpack"
+    binpack = Path.cwd() / "data" / test["crosscheck"]["binpack"]
+    assert binpack.exists(), f"Binpack {binpack} does not exist"
+
+    # TODO the trainer could be inserted automatically based on the step being tested.
+    assert "trainer" in test["crosscheck"], "crosscheck config must include trainer"
+    nnue_pytorch_dir = ensure_trainer(test["crosscheck"]["trainer"])
+
+    # configure and run cross_check_eval
+    # TODO: make device respect 'device'
+    cmd = [
+        "python",
+        "-u",
+        "cross_check_eval.py",
+        "--engine",
+        f"{stockfish_testing}",
+        "--data",
+        f"{binpack}",
+        "--device=cuda",
+    ]
+
+    # add options to specify count and features
+    if "options" in test["crosscheck"]:
+        cmd += test["crosscheck"]["options"]
+
+    cmd_nnue = cmd + ["--net", f"{std_nnue}"]
+    execute("Run cross check eval from .nnue ", cmd_nnue, nnue_pytorch_dir, False)
+
+    cmd_ckpt = cmd_nnue + ["--checkpoint", f"{checkpoint}"]
+    execute("Run cross check eval from .ckpt ", cmd_ckpt, nnue_pytorch_dir, False)
+
+
 def run_test(environment, test_config_sha, testing_sha):
     """
     Driver to run the test
@@ -334,7 +445,10 @@ def run_test(environment, test_config_sha, testing_sha):
     fastchess = ensure_fastchess(test["fastchess"])
     stockfish_reference = ensure_stockfish("reference", test)
     stockfish_testing = ensure_stockfish("testing", test)
-    return run_fastchess(
+
+    run_cross_check_eval(environment, test, testing_sha, stockfish_testing)
+
+    winning_net, nElo = run_fastchess(
         environment,
         test_config_sha,
         test,
@@ -343,6 +457,16 @@ def run_test(environment, test_config_sha, testing_sha):
         stockfish_reference,
         stockfish_testing,
     )
+
+    # store as an artifact for this run
+    artifact_dir = Path.cwd() / "cidir" / f"test_{test_config_sha}_result"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    artifact_txt = artifact_dir / f"{testing_sha}_result.txt"
+    with open(artifact_txt, "w") as f:
+        f.write(f"Winning net: {winning_net}\n")
+        f.write(f"Elo: {nElo}\n")
+
+    return winning_net, nElo
 
 
 if __name__ == "__main__":

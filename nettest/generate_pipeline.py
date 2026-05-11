@@ -2,6 +2,7 @@ import re
 import yaml
 import hashlib
 import json
+import argparse
 from pathlib import Path
 from collections import defaultdict
 from .utils import MyDumper
@@ -261,7 +262,9 @@ def generate_training_stages(recipe, environment, ci_yaml_out, schedule):
     return training_jobs_by_sha
 
 
-def generate_testing_stage(recipe, environment, ci_yaml_out, schedule, training_jobs_by_sha):
+def generate_testing_stage(
+    recipe, environment, ci_yaml_out, schedule, training_jobs_by_sha
+):
     """
     Generate the testing stage
     """
@@ -325,7 +328,12 @@ def generate_testing_stage(recipe, environment, ci_yaml_out, schedule, training_
             job["script"] = ["cd /workspace/", "ln -s $CI_PROJECT_DIR ./cidir"]
             job["script"].append(task)
 
-            # Establish explicit DAG dependencies
+            job["artifacts"] = {
+                "expire_in": "1 month",
+                "paths": [f"test_{test_config_sha}_result"],
+            }
+
+            # Establish explicit DAG dependencies to bypass stage wait times
             needs = []
             if "ensureDataJob" in ci_yaml_out:
                 needs.append("ensureDataJob")
@@ -376,40 +384,46 @@ def parse_recipe(recipe, environment):
     generate_ensure_data(recipe, ci_yaml_out, schedule)
 
     # generate the training stages and capture job dependencies
-    training_jobs_by_sha = generate_training_stages(recipe, environment, ci_yaml_out, schedule)
+    training_jobs_by_sha = generate_training_stages(
+        recipe, environment, ci_yaml_out, schedule
+    )
 
     # generate the match stage utilizing the extracted job dependencies
-    generate_testing_stage(recipe, environment, ci_yaml_out, schedule, training_jobs_by_sha)
+    generate_testing_stage(
+        recipe, environment, ci_yaml_out, schedule, training_jobs_by_sha
+    )
 
     print("schedule information:")
     print(yaml.dump(schedule, Dumper=MyDumper, default_flow_style=False, width=300))
 
-    return ci_yaml_out, schedule
+    return ci_yaml_out, schedule, recipe
 
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Translate recipe to pipeline and schedule"
+    parser = argparse.ArgumentParser(description="Translate recipe to pipeline")
+    parser.add_argument("--environment", required=False, help="Environment file")
+    parser.add_argument(
+        "input_file",
+        help="Input recipe",
     )
     parser.add_argument(
-        "--environment", required=False, help="Definition of the environment file"
+        "output_file",
+        help="Output path for pipeline [and recipe] YAML file[s]",
+        nargs="+",
     )
-    parser.add_argument("input_file", help="Input recipe file")
-    parser.add_argument("output_file", help="Output pipeline YAML file")
+
     args = parser.parse_args()
 
-    input_file = args.input_file
-    output_file = args.output_file
-
-    print("Translating recipe: ", input_file)
-
-    with open(input_file) as f:
+    with open(args.input_file) as f:
         recipe = yaml.safe_load(f)
 
-    ci_yaml_out, schedule = parse_recipe(recipe, args.environment)
+    ci_out, schedule, final_recipe = parse_recipe(recipe, args.environment)
 
-    print("Resulting pipeline: ", Path(output_file))
-    with Path(output_file).open(mode="w", encoding="utf-8") as f:
-        yaml.dump(ci_yaml_out, f, Dumper=MyDumper, default_flow_style=False, width=300)
+    with Path(args.output_file[0]).open(mode="w", encoding="utf-8") as f:
+        yaml.dump(ci_out, f, Dumper=MyDumper, default_flow_style=False, width=300)
+
+    if len(args.output_file) > 1:
+        with Path(args.output_file[1]).open(mode="w", encoding="utf-8") as f:
+            yaml.dump(
+                final_recipe, f, Dumper=MyDumper, default_flow_style=False, width=300
+            )
