@@ -181,8 +181,6 @@ advanced_stage_options: &advanced_stage_options
 
 ft_options: &ft_options
   batch_size: 65536
-  qp-asymmetry: 0.12
-  w1: 2.0
   start-lambda: 1
   end-lambda: 1
   tb_remap_base: 7000.0
@@ -290,7 +288,7 @@ training:
       run:
         <<: *common_run_resume_ckpt
         binpacks: *fine_tuning_binpacks
-        max_epochs: 4900
+        max_epochs: 3900
         other_options:
           <<: [*ft_options, *common_run_options, *advanced_stage_options]
           one-cycle-steps: 3509800
