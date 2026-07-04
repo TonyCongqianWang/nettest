@@ -1,18 +1,79 @@
-training_binpacks: &training_binpacks
+pretraining_binpacks_lq: &pretraining_binpacks_lq
+  - vondele/from_kaggle_1/leela96-filt-v2.min.split_0.binpack
+  - vondele/from_kaggle_1/leela96-filt-v2.min.split_1.binpack
+  - vondele/from_kaggle_1/leela96-filt-v2.min.split_2.binpack
+  - vondele/from_kaggle_1/leela96-filt-v2.min.split_3.binpack
+  - vondele/from_kaggle_1/leela96-filt-v2.min.split_4.binpack
+  - vondele/from_kaggle_2/T60T70wIsRightFarseerT60T74T75T76.split_0.binpack
+  - vondele/from_kaggle_2/T60T70wIsRightFarseerT60T74T75T76.split_1.binpack
+  - vondele/from_kaggle_2/T60T70wIsRightFarseerT60T74T75T76.split_2.binpack
+  - vondele/from_kaggle_2/T60T70wIsRightFarseerT60T74T75T76.split_3.binpack
+  - vondele/from_kaggle_2/T60T70wIsRightFarseerT60T74T75T76.split_4.binpack
   - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_0.relabel-BT4-tf13tune.binpack
   - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_1.relabel-BT4-tf13tune.binpack
   - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_2.relabel-BT4-tf13tune.binpack
   - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_3.relabel-BT4-tf13tune.binpack
   - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_4.relabel-BT4-tf13tune.binpack
   - vondele/master-binpacks_relabel/nodes5000pv2_UHO.relabel-BT4-tf13tune.binpack
-  - vondele/master-binpacks_relabel/wrongIsRight_nodes5000pv2.relabel-BT4-tf13tune.binpack
+  - anematode/bt4-relabel/wrongIsRight_nodes5000pv2-rescored.binpack
   - vondele/master-binpacks_relabel/multinet_pv-2_diff-100_nodes-5000.relabel-BT4-tf13tune.binpack
   - vondele/master-binpacks_relabel/dfrc_n5000.relabel-BT4-tf13tune.binpack
-  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_0.relabel-BT4-tf13tune.binpack
-  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_1.relabel-BT4-tf13tune.binpack
-  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_2.relabel-BT4-tf13tune.binpack
-  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_3.relabel-BT4-tf13tune.binpack
-  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_4.relabel-BT4-tf13tune.binpack
+  - vondele/rescored/tb5dtm.binpack
+
+pretraining_binpacks_hq: &pretraining_binpacks_hq
+  - linrock/test60/test60-2021-11-nov-12tb7p.min-v2.binpack
+  - linrock/test60/test60-2021-12-dec-12tb7p.min-v2.binpack
+  - linrock/test77/test77-2021-12-dec-16tb7p.v6-dd.min.binpack
+  - linrock/test78/test78-2022-01-to-05-jantomay-16tb7p.v6-dd.min.binpack
+  - linrock/test79/test79-2022-04-apr-16tb7p.v6-dd.min.binpack
+  - linrock/test79/test79-2022-05-may-16tb7p.v6-dd.min.binpack
+  - linrock/test78/test78-2022-06-to-09-juntosep-16tb7p.v6-dd.min.binpack
+  - linrock/test80-2022/test80-2022-06-jun-16tb7p.v6-dd.min.binpack
+  - linrock/test80-2022/test80-2022-07-jul-16tb7p.v6-dd.min.binpack
+  - linrock/test80-2022/test80-2022-08-aug-16tb7p.v6-dd.min.binpack
+  - linrock/test80-2022/test80-2022-09-sep-16tb7p.v6-dd.min.binpack
+  - linrock/test80-2022/test80-2022-10-oct-16tb7p.v6-dd.binpack
+  - linrock/test80-2022/test80-2022-11-nov-16tb7p.v6-dd.min.binpack
+  - linrock/test80-2023/test80-2023-01-jan-16tb7p.v6-sk20.min.binpack
+  - linrock/test80-2023/test80-2023-02-feb-16tb7p.v6-dd.min.binpack
+  - linrock/test80-2023/test80-2023-03-mar-2tb7p.v6-sk16.min.binpack
+  - linrock/test80-2023/test80-2023-04-apr-2tb7p.v6-sk16.min.binpack
+  - linrock/test80-2023/test80-2023-05-may-2tb7p.v6.min.binpack
+  - linrock/test80-2023/test80-2023-06-jun-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2023/test80-2023-07-jul-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2023/test80-2023-08-aug-2tb7p.v6.min.binpack
+  - linrock/test80-2023/test80-2023-09-sep-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2023/test80-2023-10-oct-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2023/test80-2023-11-nov-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2023/test80-2023-12-dec-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2024/test80-2024-01-jan-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2024/test80-2024-02-feb-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2024/test80-2024-03-mar-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2024/test80-2024-04-apr-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2024/test80-2024-05-may-2tb7p.min-v2.v6.binpack
+  - linrock/test80-2024/test80-2024-06-jun-2tb7p.min-v2.v6.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_0.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_1.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_2.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_3.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_4.relabel-BT4-tf13tune.binpack
+  - vondele/master-binpacks_relabel/nodes5000pv2_UHO.relabel-BT4-tf13tune.binpack
+  - anematode/bt4-relabel/wrongIsRight_nodes5000pv2-rescored.binpack
+  - vondele/master-binpacks_relabel/multinet_pv-2_diff-100_nodes-5000.relabel-BT4-tf13tune.binpack
+  - vondele/master-binpacks_relabel/dfrc_n5000.relabel-BT4-tf13tune.binpack
+  - vondele/rescored/tb5dtm.binpack
+
+fine_tuning_binpacks_lq: &fine_tuning_binpacks_lq
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_0.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_1.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_2.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_3.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_4.relabel-BT4-tf13tune.binpack
+  - vondele/master-binpacks_relabel/nodes5000pv2_UHO.relabel-BT4-tf13tune.binpack
+  - anematode/bt4-relabel/wrongIsRight_nodes5000pv2-rescored.binpack
+  - vondele/master-binpacks_relabel/multinet_pv-2_diff-100_nodes-5000.relabel-BT4-tf13tune.binpack
+  - vondele/master-binpacks_relabel/dfrc_n5000.relabel-BT4-tf13tune.binpack
+  - vondele/rescored/tb5dtm.binpack
   - vondele/linrock_relabel_1/test60-2021-11-nov-12tb7p.min-v2.relabel-BT4-tf13tune.binpack
   - vondele/linrock_relabel_1/test60-2021-12-dec-12tb7p.min-v2.relabel-BT4-tf13tune.binpack
   - vondele/linrock_relabel_1/test77-2021-12-dec-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
@@ -99,7 +160,7 @@ advanced_stage_options: &advanced_stage_options
   w1: 3.3553547771220007
   w2: 0.7006821612968052
   pow-exp: 2.4340402395048404
-  qp-asymmetry: 0.22866886710086187
+  qp-asymmetry: 0.15
   in-scaling: 295.6539508488627
   out-scaling: 379.98724077106635
   in-offset: 285.2706341467852
@@ -157,7 +218,7 @@ testing:
       sha: b9008d08b9f375ef7810dc55da6ff223a3992cc2
     options:
       hash: 16
-      max_rounds: 30000
+      max_rounds: 100
       tc: 10+0.1
   reference:
     code: *reference_code
@@ -171,7 +232,7 @@ training:
     # Stage 1
     - <<: *common_step
       run:
-        binpacks: *training_binpacks
+        binpacks: *pretraining_binpacks_lq
         max_epochs: 500
         other_options:
           <<: [*common_run_options, *warmups_stage_options]
@@ -185,7 +246,7 @@ training:
     - <<: *common_step
       run:
         <<: *common_run_resume_model
-        binpacks: *training_binpacks
+        binpacks: *pretraining_binpacks_lq
         max_epochs: 2000
         other_options:
           <<: [*common_run_options, *advanced_stage_options]
@@ -196,7 +257,7 @@ training:
     - <<: *common_step
       run:
         <<: *common_run_resume_ckpt
-        binpacks: *training_binpacks
+        binpacks: *pretraining_binpacks_hq
         max_epochs: 3600
         other_options:
           <<: [*common_run_options, *advanced_stage_options]
@@ -208,7 +269,7 @@ training:
       trainer: *trainer
       run:
         <<: *common_run_resume_ckpt
-        binpacks: *training_binpacks
+        binpacks: *fine_tuning_binpacks_lq
         max_epochs: 3900
         other_options:
           <<: [*common_run_options, *advanced_stage_options]
