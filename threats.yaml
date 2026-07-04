@@ -59,7 +59,8 @@ checkpoint2nnue_options: &checkpoint2nnue_options
 
 common_run_options: &common_run_options
   optimizer-name: rangerlite
-  validation-size: 250000000
+  epoch-size: 134217728
+  validation-size: 268435456
   check-val-every-n-epoch: 50
   batch-size: 131072
   <<: *model_config
@@ -72,20 +73,6 @@ common_run_options: &common_run_options
   pc-y2: 1.0
   pc-y3: 0.95
   pc-y4: 0.75
-
-warmups_stage_options: &warmups_stage_options
-  ply-x1: 0.0
-  ply-y1: 0.01
-  ply-x2: 14.0
-  ply-y2: 0.20
-  ply-x3: 18.5
-  ply-y3: 0.50
-  ply-x4: 29.5
-  ply-y4: 0.80
-  one-cycle-warmup-pct: 0.5
-  one-cycle-final-div: "4e0"
-  start-lambda: 1.0
-  end-lambda: 0.70
 
 advanced_stage_options: &advanced_stage_options
   ply-x1: 0.00
@@ -104,8 +91,8 @@ advanced_stage_options: &advanced_stage_options
   out-scaling: 379.98724077106635
   in-offset: 285.2706341467852
   out-offset: 289.1258344152218
-  one-cycle-warmup-pct: 0.033
-  one-cycle-final-div: "2e3"
+  one-cycle-warmup-pct: 0.05
+  one-cycle-final-div: "1e3"
   jitter-lambda-sample: 0.0034284671121657256
   jitter-lambda-batch: 0.0061980291754002
   jitter-decay-lambda-batch: 0.999
@@ -117,8 +104,8 @@ trainer: &trainer
   sha: 6cd6ed4e6de7a6bb260e60f1cde02464b3049212
 
 reference_code: &reference_code
-  owner: TonyCongqianWang
-  sha: 82d79197e1abd7994571a16dc1f4e41031645529
+  owner: official-stockfish
+  sha: d5bbc6b67d3184fc39fa87a18596e77e92af990c
   target: profile-build
 
 testing_code: &testing_code
@@ -157,62 +144,39 @@ testing:
       sha: b9008d08b9f375ef7810dc55da6ff223a3992cc2
     options:
       hash: 16
-      max_rounds: 30000
+      max_rounds: 50000
       tc: 10+0.1
   reference:
     code: *reference_code
-  steps: 4
+  steps: all
   testing:
     code: *testing_code
 
 
 training:
   steps:
-    # Stage 1
+    # Pretraining
     - <<: *common_step
       run:
-        binpacks: *training_binpacks
-        max_epochs: 500
-        other_options:
-          <<: [*common_run_options, *warmups_stage_options]
-          one-cycle-steps: 190750
-          swa-start-epoch: 400
-          lr: "0.8e-3"
-        repetitions: 1
         resume: none
-
-    # Stage 2
-    - <<: *common_step
-      run:
-        <<: *common_run_resume_model
         binpacks: *training_binpacks
-        max_epochs: 2000
+        max_epochs: 3500
+        repetitions: 3
         other_options:
           <<: [*common_run_options, *advanced_stage_options]
-          one-cycle-steps: 3509800
+          one-cycle-steps: 4096000
           lr: "0.9e-3"
 
-    # Stage 3
-    - <<: *common_step
-      run:
-        <<: *common_run_resume_ckpt
-        binpacks: *training_binpacks
-        max_epochs: 3600
-        other_options:
-          <<: [*common_run_options, *advanced_stage_options]
-          one-cycle-steps: 3509800
-          lr: "0.9e-3"
-
-    # Stage 4
+    # Finetuning
     - <<: *common_step
       trainer: *trainer
       run:
         <<: *common_run_resume_ckpt
         binpacks: *training_binpacks
-        max_epochs: 3900
+        max_epochs: 3750
         other_options:
           <<: [*common_run_options, *advanced_stage_options]
-          one-cycle-steps: 3509800
+          one-cycle-steps: 4096000
           lr: "0.9e-3"
           batch_size: 65536
           start-lambda: 1
