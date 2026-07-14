@@ -98,6 +98,7 @@ advanced_stage_options: &advanced_stage_options
   jitter-decay-lambda-batch: 0.999
   start-lambda: 1.0
   end-lambda: 1.0
+  lambda-cycle-warmup-pct: 0.2
   lambda-cycle-delta: -0.3
 
 trainer: &trainer
