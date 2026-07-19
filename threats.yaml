@@ -104,13 +104,13 @@ trainer: &trainer
   sha: 44b17fa049b584500eb958da6e334b75b0c5be34
 
 reference_code: &reference_code
-  owner: official-stockfish
-  sha: 924d29d3cab85f45a877a5da0eeeb73a52cb4b62
+  owner: TonyCongqianWang
+  sha: 468061d98b3c5fc03bdc6acdfc72c65547e52b9c
   target: profile-build
 
 testing_code: &testing_code
-  owner: anematode
-  sha: df3ee125629b13b240d8e6d777ea192bf15d4847
+  owner: TonyCongqianWang
+  sha: 468061d98b3c5fc03bdc6acdfc72c65547e52b9c
   target: profile-build
 
 # --- Grouped Structure Anchors for Redundancy Reduction ---
@@ -149,7 +149,7 @@ testing:
       max_rounds: 80000
       tc: 10+0.1
     sprt:
-      nElo_interval_midpoint: -0.75
+      nElo_interval_midpoint: 0.25
       nElo_interval_width: 2
 
   reference:
