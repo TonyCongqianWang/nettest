@@ -102,17 +102,17 @@ advanced_stage_options: &advanced_stage_options
   lambda-cycle-delta: -0.3
 
 trainer: &trainer
-  owner: TonyCongqianWang
-  sha: 44b17fa049b584500eb958da6e334b75b0c5be34
+  owner: official-stockfish
+  sha: 9f72946529c4187d3679014036cd22c3be419716
 
 reference_code: &reference_code
   owner: official-stockfish
-  sha: 924d29d3cab85f45a877a5da0eeeb73a52cb4b62
+  sha: 23cf5d827388e84d4389b40025ef401db4925f25
   target: profile-build
 
 testing_code: &testing_code
-  owner: anematode
-  sha: df3ee125629b13b240d8e6d777ea192bf15d4847
+  owner: official-stockfish
+  sha: 23cf5d827388e84d4389b40025ef401db4925f25
   target: profile-build
 
 # --- Grouped Structure Anchors for Redundancy Reduction ---
@@ -145,7 +145,7 @@ testing:
   fastchess:
     code:
       owner: Disservin
-      sha: b9008d08b9f375ef7810dc55da6ff223a3992cc2
+      sha: ea901931eaff9745b7df8172eb542239cc5b58e3
     options:
       hash: 16
       max_rounds: 80000
