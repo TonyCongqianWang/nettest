@@ -60,12 +60,13 @@ checkpoint2nnue_options: &checkpoint2nnue_options
 
 common_run_options: &common_run_options
   optimizer-name: rangerlite
+  ranger-stable-weight-decay: false
+  factorized-weight-decay: "1e-6"
   epoch-size: 134217728
   validation-size: 268435456
   check-val-every-n-epoch: 50
   batch-size: 131072
   <<: *model_config
-  factorized-weight-decay: 0.001
   random-fen-skipping: 10
   early-fen-skipping: 18
   soft-early-fen_skipping: 32
@@ -102,8 +103,8 @@ advanced_stage_options: &advanced_stage_options
   lambda-cycle-delta: -0.3
 
 trainer: &trainer
-  owner: official-stockfish
-  sha: 9f72946529c4187d3679014036cd22c3be419716
+  owner: TonyCongqianWang
+  sha: c8c6f7d4f227cfef46477f4c5a0131c76a11393e
 
 reference_code: &reference_code
   owner: official-stockfish
@@ -111,9 +112,7 @@ reference_code: &reference_code
   target: profile-build
 
 testing_code: &testing_code
-  owner: official-stockfish
-  sha: 23cf5d827388e84d4389b40025ef401db4925f25
-  target: profile-build
+  <<: *reference_code
 
 # --- Grouped Structure Anchors for Redundancy Reduction ---
 common_convert: &common_convert
@@ -151,7 +150,7 @@ testing:
       max_rounds: 80000
       tc: 10+0.1
     sprt:
-      nElo_interval_midpoint: -0.75
+      nElo_interval_midpoint: -0.25
       nElo_interval_width: 2
 
   reference:
