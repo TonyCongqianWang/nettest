@@ -112,7 +112,7 @@ reference_code: &reference_code
 
 testing_code: &testing_code
   owner: TonyCongqianWang
-  sha: a1be3ffc746dd012f547cb92111311de05c5882e
+  sha: 7bc16447fb5928aebe567a17b1648b365b82b915
   target: profile-build
 
 # --- Grouped Structure Anchors for Redundancy Reduction ---
