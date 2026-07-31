@@ -44,7 +44,7 @@ training_binpacks: &training_binpacks
   - vondele/rescored/tb5dtm.binpack
 
 model_config: &model_config
-  features: Full_Threats+PP_3Wide+QK4+K32Q2^
+  features: Full_Threats+PP_3Wide+K32Q2^
   l1: 1024
   l2: 32
 
