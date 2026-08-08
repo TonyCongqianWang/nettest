@@ -111,7 +111,7 @@ reference_code: &reference_code
 
 testing_code: &testing_code
   owner: TonyCongqianWang
-  sha: 55bc35086fb6f9b63f7f7d3349cfabdef34ee2e3
+  sha: eae6d765d35c5be93ac46b3ce7a9195be58e6b7a
   target: build
 
 # --- Grouped Structure Anchors for Redundancy Reduction ---
@@ -167,8 +167,8 @@ training:
       run:
         resume: none
         binpacks: *training_binpacks
-        max_epochs: 500
-        repetitions: 3
+        max_epochs: 2000
+        repetitions: 2
         other_options:
           <<: [*common_run_options, *advanced_stage_options]
           one-cycle-steps: 4096000
@@ -182,7 +182,7 @@ training:
         <<: *common_run_resume_ckpt
         binpacks: *training_binpacks
         max_epochs: 3500
-        repetitions: 3
+        repetitions: 2
         other_options:
           <<: [*common_run_options, *advanced_stage_options]
           one-cycle-steps: 4096000
