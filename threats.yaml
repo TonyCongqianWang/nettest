@@ -102,7 +102,7 @@ advanced_stage_options: &advanced_stage_options
 
 trainer: &trainer
   owner: TonyCongqianWang
-  sha: ab9f58e2c2ac900ae91375b88fb0ad384c0d8f70
+  sha: 687a26240f4693e8e69a236989ea14a3127bc824
 
 reference_code: &reference_code
   owner: official-stockfish
