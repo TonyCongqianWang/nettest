@@ -8,7 +8,6 @@ from concurrent.futures import (
 from nettest import execute
 import nevergrad as ng
 import yaml
-import math
 import argparse
 import json
 import os
@@ -24,7 +23,152 @@ DEFAULT_STATE = {
     "running": [],
     "nElo_target": 0.5,
     "next_exec_id": 1,
+    "optimizable_names": [],
 }
+
+VARIABLES = {
+    # optimizable
+    "both_lambda": {
+        "init": 0.9,
+        "lower": 0.6,
+        "upper": 1.0,
+        "sigma": 0.1,
+        "optimizable": True,
+    },
+    "pow_exp": {
+        "init": 2.442037790427722,
+        "lower": 2.0,
+        "upper": 3.0,
+        "sigma": 0.1,
+        "optimizable": True,
+    },
+    "qp_asymmetry": {
+        "init": 0.228,
+        "lower": 0.1,
+        "upper": 0.3,
+        "sigma": 0.03,
+        "optimizable": True,
+    },
+    "in_scaling": {
+        "init": 294.7,
+        "lower": 214,
+        "upper": 374,
+        "sigma": 20,
+        "optimizable": True,
+    },
+    "out_scaling": {
+        "init": 352.8,
+        "lower": 284,
+        "upper": 444,
+        "sigma": 20,
+        "optimizable": True,
+    },
+    "in_offset": {
+        "init": 281.4,
+        "lower": 210,
+        "upper": 330,
+        "sigma": 20,
+        "optimizable": True,
+    },
+    "out_offset_shift": {
+        "init": -2,
+        "lower": -30,
+        "upper": 30,
+        "sigma": 10,
+        "optimizable": True,
+    },
+    # fixed (documentation / future toggling)
+    "early_fen_skipping": {
+        "init": 28,
+        "lower": 10,
+        "upper": 32,
+        "sigma": 3.0,
+        "optimizable": False,
+        "integer": True,
+    },
+    "pc_y1": {
+        "init": 1.0,
+        "lower": 0.5,
+        "upper": 2.0,
+        "sigma": 0.2,
+        "optimizable": False,
+    },
+    "pc_y2": {
+        "init": 2.0,
+        "lower": 1.0,
+        "upper": 4.0,
+        "sigma": 0.5,
+        "optimizable": False,
+    },
+    "pc_y3": {
+        "init": 1.0,
+        "lower": 0.5,
+        "upper": 2.0,
+        "sigma": 0.2,
+        "optimizable": False,
+    },
+    "lr_scaling_power": {
+        "init": 0.0,
+        "lower": -4.0,
+        "upper": 4.0,
+        "sigma": 1.0,
+        "optimizable": False,
+    },
+    "gamma_adjust": {
+        "init": 5.0,
+        "lower": 0.0,
+        "upper": 10.0,
+        "sigma": 1.0,
+        "optimizable": False,
+    },
+    "lambda_sample": {
+        "init": 0.0030,
+        "lower": 0.0000,
+        "upper": 0.0090,
+        "sigma": 0.002,
+        "optimizable": False,
+    },
+    "lambda_batch": {
+        "init": 0.0100,
+        "lower": 0.0000,
+        "upper": 0.0300,
+        "sigma": 0.006,
+        "optimizable": False,
+    },
+    "end_lambda": {
+        "init": 0.75,
+        "lower": 0.55,
+        "upper": 0.85,
+        "sigma": 0.04,
+        "optimizable": False,
+    },
+}
+
+
+def build_instrumentation(variables):
+    kwargs = {}
+    for name, spec in variables.items():
+        if not spec.get("optimizable"):
+            continue
+        p = ng.p.Scalar(init=spec["init"])
+        if "sigma" in spec:
+            p = p.set_mutation(sigma=spec["sigma"])
+        if "lower" in spec and "upper" in spec:
+            p = p.set_bounds(lower=spec["lower"], upper=spec["upper"])
+        if spec.get("integer"):
+            p = p.set_integer_casting()
+        kwargs[name] = p
+    return ng.p.Instrumentation(**kwargs), list(kwargs.keys())
+
+
+def make_variables(candidate_kwargs):
+    variables = {k: float(v) for k, v in candidate_kwargs.items()}
+    variables["out_offset"] = variables["in_offset"] + variables["out_offset_shift"]
+    return variables
+
+
+def float_kwargs(candidate_kwargs):
+    return {k: float(v) for k, v in candidate_kwargs.items()}
 
 
 def load_state():
@@ -64,33 +208,12 @@ class RemoteNet:
         self.environment = environment
 
     # the recipe to optimize
-    def train_and_test_net(
-        self,
-        local_exec_id,
-        nElo_target,
-        both_lambda,
-        pow_exp,
-        qp_asymmetry,
-        in_scaling,
-        out_scaling,
-        in_offset,
-        out_offset_shift,
-    ):
-        print(
-            f"Starting {local_exec_id}:",
-            both_lambda,
-            pow_exp,
-            qp_asymmetry,
-            in_scaling,
-            out_scaling,
-            in_offset,
-            out_offset_shift,
-            flush=True,
-        )
+    def train_and_test_net(self, local_exec_id, nElo_target, variables):
+        print(f"Starting {local_exec_id}:", variables, flush=True)
 
-        out_offset = in_offset + out_offset_shift
+        variables = dict(variables)
 
-        recipe_str = f"""
+        RECIPE_TEMPLATE = """
 training_binpacks: &training_binpacks
   - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_0.relabel-BT4-tf13tune.binpack
   - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_1.relabel-BT4-tf13tune.binpack
@@ -293,6 +416,7 @@ training:
           jitter-lambda-batch: 0.0
           jitter-decay-lambda-batch: 0.0
         """
+        recipe_str = RECIPE_TEMPLATE.format(nElo_target=nElo_target, **variables)
         recipe = yaml.safe_load(recipe_str)
 
         with Path(f"optimize_recipe_str_{local_exec_id}.yaml").open(
@@ -318,19 +442,7 @@ training:
             )
             nElo = nElo_target - 10
 
-        print(
-            f"Done {local_exec_id}:",
-            both_lambda,
-            pow_exp,
-            qp_asymmetry,
-            in_scaling,
-            out_scaling,
-            in_offset,
-            out_offset_shift,
-            nElo,
-            bestNet,
-            flush=True,
-        )
+        print(f"Done {local_exec_id}:", nElo, bestNet, variables, flush=True)
 
         return -nElo
 
@@ -352,61 +464,7 @@ if __name__ == "__main__":
     else:
         environment = get_default_environment()
 
-    instrumentation = ng.p.Instrumentation(
-        # ng.p.Scalar(init=28)
-        # .set_bounds(lower=10, upper=32)
-        # .set_mutation(sigma=3.0)
-        # .set_integer_casting(),  # early_fen_skipping
-        # ng.p.Scalar(init=1.0)
-        # .set_bounds(lower=0.5, upper=2.0)
-        # .set_mutation(sigma=0.2),  # pc_y1
-        # ng.p.Scalar(init=2.0)
-        # .set_bounds(lower=1.0, upper=4.0)
-        # .set_mutation(sigma=0.5),  # pc_y2
-        # ng.p.Scalar(init=1.0)
-        # .set_bounds(lower=0.5, upper=2.0)
-        # .set_mutation(sigma=0.2),  # pc_y3
-        # ng.p.Scalar(init=0.0)
-        # .set_bounds(lower=-4.0, upper=4.0)
-        # .set_mutation(sigma=1.0),  # lr_scaling_power
-        # ng.p.Scalar(init=5.0)
-        # .set_bounds(lower=0.0, upper=10.0)
-        # .set_mutation(sigma=1.0),  # gamma_adjust
-        # ng.p.Scalar(init=0.0030)  # lambda_sample
-        # .set_bounds(lower=0.0000, upper=0.0090)
-        # .set_mutation(sigma=0.002),
-        # ng.p.Scalar(init=0.0100)  # lambda_batch
-        # .set_bounds(lower=0.0000, upper=0.0300)
-        # .set_mutation(sigma=0.006),
-        # ng.p.Scalar(init=0.76)  # both_lambda
-        # .set_bounds(lower=0.6, upper=0.9)
-        # .set_mutation(sigma=0.02),
-        # ng.p.Scalar(init=0.75)  # end_lambda
-        # .set_bounds(lower=0.55, upper=0.85)
-        # .set_mutation(sigma=0.04),
-        #
-        ng.p.Scalar(init=0.9)  # both_lambda
-        .set_bounds(lower=0.6, upper=1.0)
-        .set_mutation(sigma=0.1),
-        ng.p.Scalar(init=2.442037790427722)  # pow_exp
-        .set_bounds(lower=2.0, upper=3.0)
-        .set_mutation(sigma=0.1),
-        ng.p.Scalar(init=0.228)  # qp_asymmetry
-        .set_bounds(lower=0.1, upper=0.3)
-        .set_mutation(sigma=0.03),
-        ng.p.Scalar(init=294.7)  # in_scaling
-        .set_bounds(lower=214, upper=374)
-        .set_mutation(sigma=20),
-        ng.p.Scalar(init=352.8)  # out_scaling
-        .set_bounds(lower=284, upper=444)
-        .set_mutation(sigma=20),
-        ng.p.Scalar(init=281.4)  # in_offset
-        .set_bounds(lower=210, upper=330)
-        .set_mutation(sigma=20),
-        ng.p.Scalar(init=-2)  # out_offset_shift
-        .set_bounds(lower=-30, upper=30)
-        .set_mutation(sigma=10),
-    )
+    instrumentation, optimizable_names = build_instrumentation(VARIABLES)
 
     budget = 256  # Total number of evaluations to perform
     num_workers = 8  # Number of parallel workers to use
@@ -414,6 +472,11 @@ if __name__ == "__main__":
     instrumentation.random_state.seed(RANDOM_SEED)
 
     state = load_state()
+    if state["optimizable_names"] and state["optimizable_names"] != optimizable_names:
+        raise ValueError(
+            f"Optimizable variable set changed. Delete {STATE_FILE} and restart without --restart."
+        )
+    state["optimizable_names"] = optimizable_names
     pending_candidates = []
     current_nElo_target = state["nElo_target"]
     next_exec_id = state["next_exec_id"]
@@ -438,16 +501,14 @@ if __name__ == "__main__":
         # Reload completed points into the optimizer
         for item in state["completed"]:
             cand = optimizer.parametrization.spawn_child()
-            cand.value = (tuple(item["args"]), item["kwargs"])
+            cand.value = ((), item["kwargs"])
             optimizer.tell(cand, item["loss"])
 
         # Queue previously running points for re-evaluation
         for item in state["running"]:
             cand = optimizer.parametrization.spawn_child()
-            cand.value = (tuple(item["args"]), item["kwargs"])
-            pending_candidates.append(
-                (cand, item["exec_id"], item["nElo_target"])
-            )
+            cand.value = ((), item["kwargs"])
+            pending_candidates.append((cand, item["exec_id"], item["nElo_target"]))
     else:
         save_state(state)
 
@@ -470,12 +531,12 @@ if __name__ == "__main__":
                     point_target = current_nElo_target
                     is_restart_point = False
 
+                variables = make_variables(candidate.kwargs)
                 future = executor.submit(
                     remoteNet.train_and_test_net,
                     exec_id,
                     point_target,
-                    *candidate.args,
-                    **candidate.kwargs,
+                    variables,
                 )
                 active_futures[future] = (candidate, exec_id)
 
@@ -483,8 +544,7 @@ if __name__ == "__main__":
                 if not is_restart_point:
                     state["running"].append(
                         {
-                            "args": candidate.args,
-                            "kwargs": candidate.kwargs,
+                            "kwargs": float_kwargs(candidate.kwargs),
                             "exec_id": exec_id,
                             "nElo_target": point_target,
                         }
@@ -512,8 +572,7 @@ if __name__ == "__main__":
                     ]
                     state["completed"].append(
                         {
-                            "args": candidate.args,
-                            "kwargs": candidate.kwargs,
+                            "kwargs": float_kwargs(candidate.kwargs),
                             "loss": loss,
                             "exec_id": exec_id,
                         }
