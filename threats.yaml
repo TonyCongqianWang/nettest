@@ -64,6 +64,7 @@ common_run_options: &common_run_options
   check-val-every-n-epoch: 50
   batch-size: 131072
   <<: *model_config
+  dense-weight-decay: "1.0e-5"
   factorized-weight-decay: "4.0e-5"
   random-fen-skipping: 10
   early-fen-skipping: 18
@@ -102,7 +103,7 @@ advanced_stage_options: &advanced_stage_options
 
 trainer: &trainer
   owner: TonyCongqianWang
-  sha: 687a26240f4693e8e69a236989ea14a3127bc824
+  sha: d843c0442f0d70675fee20991dc21fb2a258106c
 
 reference_code: &reference_code
   owner: official-stockfish
@@ -111,7 +112,7 @@ reference_code: &reference_code
 
 testing_code: &testing_code
   owner: TonyCongqianWang
-  sha: eae6d765d35c5be93ac46b3ce7a9195be58e6b7a
+  sha: 87b03b706f7a905606fc0f8a13f90ae1b3eb26e9
   target: build
 
 # --- Grouped Structure Anchors for Redundancy Reduction ---
