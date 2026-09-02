@@ -76,6 +76,8 @@ common_run_options: &common_run_options
   pc-y4: 0.75
 
 advanced_stage_options: &advanced_stage_options
+  skip-check-prob: 0.999
+  skip-capture-prob: 0.95
   ply-x1: 0.00
   ply-y1: 0.025
   ply-x2: 22.0
@@ -103,11 +105,11 @@ advanced_stage_options: &advanced_stage_options
 
 trainer: &trainer
   owner: TonyCongqianWang
-  sha: c8c6f7d4f227cfef46477f4c5a0131c76a11393e
+  sha: a93fbc82343c067fb6c424af0493ce72dfd85aea
 
 reference_code: &reference_code
   owner: official-stockfish
-  sha: 23cf5d827388e84d4389b40025ef401db4925f25
+  sha: 3f6f417b87c0e80ee30914b6b539b4ab7d3b2a5b
   target: profile-build
 
 testing_code: &testing_code
@@ -149,7 +151,7 @@ testing:
       max_rounds: 80000
       tc: 10+0.1
     sprt:
-      nElo_interval_midpoint: -0.0
+      nElo_interval_midpoint: 1.0
       nElo_interval_width: 2
 
   reference:
