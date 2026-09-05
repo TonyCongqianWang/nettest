@@ -76,8 +76,8 @@ common_run_options: &common_run_options
   pc-y4: 0.75
 
 advanced_stage_options: &advanced_stage_options
-  skip-check-prob: 0.999
-  skip-capture-prob: 0.95
+  skip-check-prob: 1.0
+  skip-capture-prob: 0.90
   ply-x1: 0.00
   ply-y1: 0.025
   ply-x2: 22.0
