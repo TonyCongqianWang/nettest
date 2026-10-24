@@ -101,7 +101,7 @@ common_run_options: &common_run_options
 
 trainer: &trainer
   owner: TonyCongqianWang
-  sha: 3f90ba1e6b9384726c8d98ad3ebf302c50ec545d
+  sha: 5632d9e7f157224912fceb0d80685ac9a4184b64
 
 reference_code: &reference_code
   owner: official-stockfish
@@ -177,7 +177,6 @@ training:
 
     # Finetuning
     - <<: *common_step
-      trainer: *trainer
       run:
         <<: *common_run_resume_ckpt
         binpacks: *training_binpacks
@@ -186,3 +185,4 @@ training:
         other_options:
           <<: [*training_length_options, *common_run_options]
           batch_size: 65536
+
