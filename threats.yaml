@@ -70,6 +70,8 @@ common_run_options: &common_run_options
   dense-weight-decay: "1.0e-6"
   factorized-weight-decay: "4.0e-5"
   virtual-ft-weight-decay: "4.0e-6"
+  input-clipping-interval: 1024
+  matmul-precision: auto
   moe-weight-balance-cost: 0.001
   moe-weight-diversity-cost: 0.01
   moe-reseed-ema-decay: 0.998
@@ -109,7 +111,7 @@ common_run_options: &common_run_options
 
 trainer: &trainer
   owner: TonyCongqianWang
-  sha: 8799e15832421d029a728e5ef5d9aacd388d34a1
+  sha: 0a16b42d508e88882e8b17d396e9945511151363
 
 reference_code: &reference_code
   owner: official-stockfish
@@ -118,7 +120,7 @@ reference_code: &reference_code
 
 testing_code: &testing_code
   owner: TonyCongqianWang
-  sha: ef95b13dd6feb625a8580e775dc433b956273328
+  sha: 71321b5cc9c5da4ed78cbaf7df03061dfe2c3453
   target: build
 
 # --- Grouped Structure Anchors for Redundancy Reduction ---
@@ -126,6 +128,9 @@ common_convert: &common_convert
   binpack: official-stockfish/master-binpacks/fishpack32.binpack
   checkpoint2nnue: *checkpoint2nnue_options
   optimize: *optimize_flags
+  runtime:
+    device: auto
+    matmul-precision: auto
 
 common_step: &common_step
   convert: *common_convert
@@ -173,7 +178,7 @@ training_length_options: &training_length_options
 
 training:
   steps:
-    # Pretraining
+    # MoE8.6 starts fresh: expert-only biases are incompatible with MoE8.5.
     - <<: *common_step
       run:
         resume: none
@@ -194,17 +199,8 @@ training:
         other_options:
           <<: [*training_length_options, *common_run_options]
 
-    # MoE8.5 verification: reuse the original two stages unchanged, then
-    # rerun finetuning and export with the compatible runtime fixes.
+    # Finetuning uses the same 1024-step FT clipping interval as pretraining.
     - <<: *common_step
-      trainer:
-        owner: TonyCongqianWang
-        sha: 769a65cc981457a8ed1ad11c99d96424be845bbb
-      convert:
-        <<: *common_convert
-        runtime:
-          device: auto
-          matmul-precision: auto
       run:
         <<: *common_run_resume_ckpt
         binpacks: *training_binpacks
@@ -214,4 +210,3 @@ training:
           <<: [*training_length_options, *common_run_options]
           batch-size: 65536
           final-validation-multiplier: 4
-          matmul-precision: auto
