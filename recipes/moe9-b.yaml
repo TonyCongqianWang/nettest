@@ -1,0 +1,213 @@
+# MoE9 B — Mix weighted top-2 FC0 and top-4 tail every tenth optimizer step
+training_binpacks: &training_binpacks
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_0.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_1.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_2.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_3.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_2_relabel/T60T70wIsRightFarseerT60T74T75T76.split_4.relabel-BT4-tf13tune.binpack
+  - vondele/master-binpacks_relabel/nodes5000pv2_UHO.relabel-BT4-tf13tune.binpack
+  - vondele/master-binpacks_relabel/wrongIsRight_nodes5000pv2.relabel-BT4-tf13tune.binpack
+  - vondele/master-binpacks_relabel/multinet_pv-2_diff-100_nodes-5000.relabel-BT4-tf13tune.binpack
+  - vondele/master-binpacks_relabel/dfrc_n5000.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_0.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_1.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_2.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_3.relabel-BT4-tf13tune.binpack
+  - vondele/from_kaggle_1_relabel/leela96-filt-v2.min.split_4.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test60-2021-11-nov-12tb7p.min-v2.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test60-2021-12-dec-12tb7p.min-v2.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test77-2021-12-dec-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test78-2022-01-to-05-jantomay-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test79-2022-04-apr-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test79-2022-05-may-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test78-2022-06-to-09-juntosep-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test80-2022-06-jun-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test80-2022-07-jul-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test80-2022-08-aug-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test80-2022-09-sep-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test80-2022-10-oct-16tb7p.v6-dd.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_1/test80-2022-11-nov-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-01-jan-16tb7p.v6-sk20.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-02-feb-16tb7p.v6-dd.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-03-mar-2tb7p.v6-sk16.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-04-apr-2tb7p.v6-sk16.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-05-may-2tb7p.v6.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-06-jun-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-07-jul-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-08-aug-2tb7p.v6.min.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-09-sep-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-10-oct-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-11-nov-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-12-dec-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - vondele/linrock_relabel_2/test80-2023-12-dec-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - xushawn/test80-bt4-relabel/test80-2024-01-jan-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - xushawn/test80-bt4-relabel/test80-2024-02-feb-2tb7p.min-v2.v6.relabel-BT4-tf13tune.binpack
+  - vondele/rescored/tb5dtm.binpack
+
+model_config: &model_config
+  features: Full_Threats+PP_3Wide+K32H3^
+  l1: 1024
+  l2: 32
+  weight-scale-l1: 256
+  weight-scale-l2: 128
+
+optimize_flags: &optimize_flags
+  <<: *model_config
+  ft-optimize-count: 100000
+  ft-optimize: true
+  compression: none
+
+checkpoint2nnue_options: &checkpoint2nnue_options
+  <<: *model_config
+  compression: none
+
+common_run_options: &common_run_options
+  optimizer-name: adamw
+  epoch-size: 1073741824
+  validation-size: 268435456
+  check-val-every-n-epoch: 10
+  batch-size: 131072
+  <<: *model_config
+  dense-weight-decay: 0.001
+  factorized-weight-decay: 0.002
+  ft-weight-decay: 0.02
+  virtual-ft-weight-decay: 0.02
+  ft-bucket-lr-mult: 0.25
+  threat-lr-mult: 0.5
+  fake-quant-warmup-steps: 255400
+  init-seed: 1
+  input-clipping-interval: 1024
+  matmul-precision: auto
+  moe-weight-balance-cost: 0.001
+  moe-mix-interval: 10
+  moe-weight-diversity-cost: 0.01
+  moe-reseed-ema-decay: 0.998
+  moe-reseed-min-relative-utilization: 0.064
+  random-fen-skipping: 3
+  early-fen-skipping: 18
+  soft-early-fen_skipping: 32
+  pc-y0: -0.20
+  pc-y1: 0.45
+  pc-y2: 1.0
+  pc-y3: 0.95
+  pc-y4: 0.75
+  ply-x1: 0.00
+  ply-y1: 0.025
+  ply-x2: 22.0
+  ply-y2: 0.05
+  ply-x3: 25.5
+  ply-y3: 0.20
+  ply-x4: 29.5
+  ply-y4: 0.80
+  pow-exp: 2.4340402395048404
+  qp-asymmetry: 0.22866886710086187
+  in-scaling: 295.6539508488627
+  out-scaling: 379.98724077106635
+  in-offset: 285.2706341467852
+  out-offset: 289.1258344152218
+  one-cycle-warmup-pct: 0.05
+  one-cycle-final-div: 800
+  lambda-cycle-jitter: true
+  jitter-lambda-sample: 0.0035
+  jitter-lambda-batch: 0.0070
+  jitter-decay-lambda-batch: 0.999
+  start-lambda: 1.0
+  end-lambda: 1.0
+  lambda-cycle-warmup-pct: 0.25
+  lambda-cycle-delta: -0.3
+
+trainer: &trainer
+  owner: TonyCongqianWang
+  sha: ada28ce49ec13d86ea8cf396f47ca5bbc6aed7c3
+
+reference_code: &reference_code
+  owner: xu-shawn
+  sha: 73fe1eaca99ac4a09252c876aa6b1cceeaf7c4c7
+  target: build
+
+testing_code: &testing_code
+  owner: TonyCongqianWang
+  sha: c60d67ccf529329bdaa02d8a4d8dce69864873ac
+  target: build
+
+# --- Grouped Structure Anchors for Redundancy Reduction ---
+common_convert: &common_convert
+  binpack: official-stockfish/master-binpacks/fishpack32.binpack
+  checkpoint2nnue: *checkpoint2nnue_options
+  optimize: *optimize_flags
+
+common_step: &common_step
+  convert: *common_convert
+  trainer: *trainer
+
+common_run_resume_model: &common_run_resume_model
+  repetitions: 1
+  resume: previous_model
+
+common_run_resume_ckpt: &common_run_resume_ckpt
+  <<: *common_run_resume_model
+  resume: previous_checkpoint
+
+# ----------------------------------------------------------
+
+testing:
+  crosscheck:
+    binpack: official-stockfish/master-binpacks/fishpack32.binpack
+    other_options:
+      <<: *model_config
+      count: 20000
+  fastchess:
+    code:
+      owner: Disservin
+      sha: 60d7a7a26c6b0582a15c112fb29a1829bef2adb3 # # from 2026-09-12
+    options:
+      hash: 16
+      max_rounds: 30000
+      tc: 10+0.1
+    sprt:
+      nElo_interval_midpoint: -0.0
+      nElo_interval_width: 2
+
+  reference:
+    code: *reference_code
+  steps: last
+  testing:
+    code: *testing_code
+
+training_length_options: &training_length_options
+  one-cycle-steps: 4915200
+  lambda-schedule-steps: 4593750
+  lr: "0.4e-3"
+
+training:
+  steps:
+    - <<: *common_step
+      run:
+        resume: none
+        binpacks: *training_binpacks
+        max_epochs: 100
+        network-save-period: 0
+        repetitions: 1
+        other_options:
+          <<: [*training_length_options, *common_run_options]
+
+    - <<: *common_step
+      run:
+        <<: *common_run_resume_ckpt
+        binpacks: *training_binpacks
+        max_epochs: 560
+        network-save-period: 0
+        repetitions: 3
+        other_options:
+          <<: [*training_length_options, *common_run_options]
+
+    # Finetuning uses the same 1024-step FT clipping interval as pretraining.
+    - <<: *common_step
+      run:
+        <<: *common_run_resume_ckpt
+        binpacks: *training_binpacks
+        max_epochs: 600
+        network-save-period: 0
+        other_options:
+          <<: [*training_length_options, *common_run_options]
+          final-validation-multiplier: 4
