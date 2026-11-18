@@ -66,6 +66,7 @@ model_config: &model_config
   l2: 32
   moe-shared-router: true
   moe-tail-experts: 64
+  moe-balance-power: 0.4658379531227075
   moe-fc0-direct: true
   weight-scale-l1: 256
   weight-scale-l2: 128
@@ -137,7 +138,7 @@ common_run_options: &common_run_options
 
 trainer: &trainer
   owner: TonyCongqianWang
-  sha: 3dc8191eb8648622675c53ec47f0ab70ec3adfc3
+  sha: a71de6744c93dc152c9236dab658d6ebe9c833a1
 
 common_convert: &common_convert
   binpack: official-stockfish/master-binpacks/fishpack32.binpack
